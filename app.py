@@ -26,16 +26,33 @@ try:
 except ImportError:
     pass
 
+def get_streamlit_secret(key: str) -> str | None:
+    """Safely retrieves a Streamlit secret only if the secrets file exists, avoiding warning logs."""
+    try:
+        secrets_paths = [
+            os.path.join(".streamlit", "secrets.toml"),
+            os.path.join(os.path.expanduser("~"), ".streamlit", "secrets.toml")
+        ]
+        if any(os.path.exists(p) for p in secrets_paths):
+            import streamlit as st
+            return st.secrets.get(key)
+    except Exception:
+        pass
+    return None
+
 def get_apify_token() -> str:
     """Retrieves the Apify API token checking Streamlit session state, secrets, or environment variables."""
     try:
         import streamlit as st
         if "apify_token" in st.session_state and st.session_state.apify_token:
             return st.session_state.apify_token
-        if hasattr(st, "secrets") and "APIFY_TOKEN" in st.secrets:
-            return st.secrets["APIFY_TOKEN"]
     except Exception:
         pass
+        
+    secret_val = get_streamlit_secret("APIFY_TOKEN")
+    if secret_val:
+        return secret_val
+        
     return os.getenv("APIFY_TOKEN") or ""
 
 APPLIED_CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "applied_jobs.csv")
@@ -308,15 +325,10 @@ if not st.session_state.splash_shown:
 
 # Retrieve authentication credentials dynamically (no hardcoded fallbacks)
 def get_admin_credentials() -> tuple:
-    try:
-        import streamlit as st
-        if hasattr(st, "secrets"):
-            u = st.secrets.get("ADMIN_USERNAME")
-            p = st.secrets.get("ADMIN_PASSWORD")
-            if u and p:
-                return u, p
-    except Exception:
-        pass
+    u = get_streamlit_secret("ADMIN_USERNAME")
+    p = get_streamlit_secret("ADMIN_PASSWORD")
+    if u and p:
+        return u, p
     return os.getenv("ADMIN_USERNAME"), os.getenv("ADMIN_PASSWORD")
 
 ADMIN_USERNAME, ADMIN_PASSWORD = get_admin_credentials()

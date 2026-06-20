@@ -153,16 +153,33 @@ try:
 except ImportError:
     pass
 
+def get_streamlit_secret(key: str) -> str | None:
+    """Safely retrieves a Streamlit secret only if the secrets file exists, avoiding warning logs."""
+    try:
+        secrets_paths = [
+            os.path.join(".streamlit", "secrets.toml"),
+            os.path.join(os.path.expanduser("~"), ".streamlit", "secrets.toml")
+        ]
+        if any(os.path.exists(p) for p in secrets_paths):
+            import streamlit as st
+            return st.secrets.get(key)
+    except Exception:
+        pass
+    return None
+
 def get_groq_key() -> str:
     """Retrieves the Groq API key checking Streamlit session state, secrets, or environment variables."""
     try:
         import streamlit as st
         if "groq_api_key" in st.session_state and st.session_state.groq_api_key:
             return st.session_state.groq_api_key
-        if hasattr(st, "secrets") and "GROQ_API_KEY" in st.secrets:
-            return st.secrets["GROQ_API_KEY"]
     except Exception:
         pass
+    
+    secret_val = get_streamlit_secret("GROQ_API_KEY")
+    if secret_val:
+        return secret_val
+        
     return os.getenv("GROQ_API_KEY") or os.getenv("GROQ_KEY") or ""
 
 def call_groq_rest(prompt: str, json_response: bool = False) -> str:
