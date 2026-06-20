@@ -195,6 +195,8 @@ WORKSPACE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Initialize Session State
 if 'splash_shown' not in st.session_state:
     st.session_state.splash_shown = False
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
 if 'resume_text' not in st.session_state:
     st.session_state.resume_text = ""
 if 'resume_skills' not in st.session_state:
@@ -302,6 +304,77 @@ if not st.session_state.splash_shown:
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+# Load Auth Credentials (defaults to username 'arbaz', password 'arbaz')
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "arbaz")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "arbaz")
+
+# --- Login Page ---
+if not st.session_state.authenticated:
+    st.markdown("""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        
+        .login-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.3rem;
+            font-weight: 800;
+            text-align: center;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        
+        .login-subtitle {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        .login-container {
+            max-width: 440px;
+            margin: 60px auto;
+            padding: 40px 30px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Form stylings to fit Outfit theme */
+        .stTextInput > label {
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 600 !important;
+            color: #334155 !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+    with col_l2:
+        st.markdown('<div class="login-container">', unsafe_allow_html=True)
+        st.markdown('<div class="login-title">Lets authnticate its you arbaz</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-subtitle">Enter credentials to access Scrapper Pro</div>', unsafe_allow_html=True)
+        
+        # Streamlit form for login inputs
+        with st.form("login_form", clear_on_submit=False):
+            username_input = st.text_input("Username", placeholder="e.g. arbaz")
+            password_input = st.text_input("Password", type="password", placeholder="••••••••")
+            submit_btn = st.form_submit_button("Authenticate 🔒", use_container_width=True)
+            
+            if submit_btn:
+                if username_input.strip() == ADMIN_USERNAME and password_input == ADMIN_PASSWORD:
+                    st.session_state.authenticated = True
+                    st.success("Access Granted! Loading Scrapper Pro...")
+                    st.experimental_rerun()
+                else:
+                    st.error("Invalid username or password. Please try again.")
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.stop()  # Lock down the application and prevent further execution
 
 # --- Load Cached Resume ---
 cached_resume = load_resume_cache(WORKSPACE_DIR)
@@ -500,6 +573,9 @@ with st.sidebar:
             
     st.markdown("---")
     st.caption("Made for Arbaaz 🚀")
+    if st.button("Logout 🔓", use_container_width=True):
+        st.session_state.authenticated = False
+        st.experimental_rerun()
 
 # --- MAIN APP LAYOUT ---
 st.title("Scrapper Pro 🎯")
