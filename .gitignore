@@ -1,0 +1,36 @@
+# Local environment variables file
+.env
+
+# Application cache and databases
+.resume_cache.json
+applied_jobs.csv
+
+# Exclude personal PDFs (resume / parsed results)
+*.pdf
+
+# Python bytecode and caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Streamlit specific secrets
+.streamlit/secrets.toml
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE configuration files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

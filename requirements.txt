@@ -1,0 +1,7 @@
+streamlit<1.23.0
+apify-client
+PyPDF2
+pandas
+scikit-learn
+reportlab<4.0.0
+python-dotenv
