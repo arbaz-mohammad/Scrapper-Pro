@@ -70,6 +70,7 @@ def save_applied_job(job_url: str, title: str, company: str, location: str, stat
         except Exception:
             pass
             
+            
     updated = False
     for row in existing:
         if row.get("job_url") == job_url:
@@ -373,7 +374,7 @@ if not st.session_state.authenticated:
         
         # Streamlit form for login inputs
         with st.form("login_form", clear_on_submit=False):
-            username_input = st.text_input("Username", placeholder="e.g. arbaz")
+            username_input = st.text_input("Username", placeholder="e.g. Username")
             password_input = st.text_input("Password", type="password", placeholder="••••••••")
             submit_btn = st.form_submit_button("Authenticate 🔒", use_container_width=True)
             
