@@ -305,9 +305,20 @@ if not st.session_state.splash_shown:
         </div>
         """, unsafe_allow_html=True)
 
-# Load Auth Credentials (defaults to username 'arbaz', password 'arbaz')
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "arbaz")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "arbaz")
+# Retrieve authentication credentials dynamically (no hardcoded fallbacks)
+def get_admin_credentials() -> tuple:
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets"):
+            u = st.secrets.get("ADMIN_USERNAME")
+            p = st.secrets.get("ADMIN_PASSWORD")
+            if u and p:
+                return u, p
+    except Exception:
+        pass
+    return os.getenv("ADMIN_USERNAME"), os.getenv("ADMIN_PASSWORD")
+
+ADMIN_USERNAME, ADMIN_PASSWORD = get_admin_credentials()
 
 # --- Login Page ---
 if not st.session_state.authenticated:
@@ -367,7 +378,9 @@ if not st.session_state.authenticated:
             submit_btn = st.form_submit_button("Authenticate 🔒", use_container_width=True)
             
             if submit_btn:
-                if username_input.strip() == ADMIN_USERNAME and password_input == ADMIN_PASSWORD:
+                if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+                    st.error("🔒 Authentication is not configured. Please define ADMIN_USERNAME and ADMIN_PASSWORD in your environment variables or secrets.")
+                elif username_input.strip() == ADMIN_USERNAME and password_input == ADMIN_PASSWORD:
                     st.session_state.authenticated = True
                     st.success("Access Granted! Loading Scrapper Pro...")
                     st.experimental_rerun()
